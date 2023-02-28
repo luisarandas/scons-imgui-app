@@ -1,0 +1,8 @@
+*.o
+*.ini
+
+.sconsign.dblite
+
+build/
+
+scons-imgui-example
