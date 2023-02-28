@@ -46,7 +46,7 @@ curl -O https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
 tar -xf pkg-config-0.29.2.tar.gz
 move "pkg-config-0.29.2.tar.gz" "C:\pkg-config"
 setx PATH "%PATH%;C:\pkg-config"
-https://osdn.net/projects/mingw/downloads/68260/mingw-get-setup.exe/
+curl -O https://osdn.net/projects/mingw/downloads/68260/mingw-get-setup.exe/
 (mark mingw32-gcc-g++-bin for installation, apply changes)
 setx PATH "%PATH%;C:\MinGW\bin"
 pacman -Syu (on freshly opened terminal)
