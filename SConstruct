@@ -1,7 +1,7 @@
 
 
 # luis arandas 26-02-2023
-# simple scons script to compile imgui cross platform, using glfw
+# simple scons script to compile imgui cross platform, need to try glfw local
 
 import os
 import subprocess
