@@ -84,6 +84,7 @@ int main(int, char**) {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.IniFilename = NULL; // disable imgui.ini
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -104,10 +105,29 @@ int main(int, char**) {
     // - remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
     // io.Fonts->AddFontDefault();
 
-    std::filesystem::path current_dir = std::filesystem::current_path();
-    std::filesystem::path font_path = current_dir / "data" / "DejaVuSans.ttf";
-    std::cout << "loading font from path: " << font_path << std::endl;
-    io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14.0f);
+    //std::filesystem::path current_dir = std::filesystem::current_path();
+    //std::filesystem::path current_dir = std::filesystem::path("~");
+    const char* home_dir = getenv("HOME");
+    if (home_dir != nullptr) {
+
+        std::string font_path = std::string(home_dir) + "/data/DejaVuSans.ttf";
+        std::filesystem::path logo_path = std::filesystem::path(home_dir) / "data" / "logo_viewport.png";
+
+        std::cout << "font path: " << font_path << std::endl;
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14.0f);
+        std::cout << "logo path: " << logo_path << std::endl;
+        int logo_width, logo_height, channels;
+        unsigned char* logo_pixels = stbi_load(logo_path.c_str(), &logo_width, &logo_height, &channels, 4);
+        GLFWimage images[1];
+        images[0].width = logo_width;
+        images[0].height = logo_height;
+        images[0].pixels = logo_pixels;
+        
+        glfwSetWindowIcon(window, 1, images);
+        
+    } else {
+        std::cout << "failed to retrieve home directory" << std::endl;
+    }    
 
     // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
     // IM_ASSERT(font != NULL);
@@ -118,17 +138,8 @@ int main(int, char**) {
     bool show_another_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    int logo_width, logo_height, channels;
-    std::filesystem::path logo_path = current_dir / "data" / "logo_viewport.png";
-    std::cout << "loading viewport logo from path: " << logo_path << std::endl;
-    unsigned char* logo_pixels = stbi_load(logo_path.c_str(), &logo_width, &logo_height, &channels, 4);
-
-    GLFWimage images[1];
-    images[0].width = logo_width;
-    images[0].height = logo_height;
-    images[0].pixels = logo_pixels;
     
-    glfwSetWindowIcon(window, 1, images);
+    
 
     // main loop
 
