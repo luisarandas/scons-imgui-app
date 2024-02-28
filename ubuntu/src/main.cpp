@@ -71,7 +71,7 @@ int main(int, char**) {
 #endif
 
     // create 720p window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "scons-imgui-example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "scons-imgui-app", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
@@ -107,6 +107,7 @@ int main(int, char**) {
 
     //std::filesystem::path current_dir = std::filesystem::current_path();
     //std::filesystem::path current_dir = std::filesystem::path("~");
+    
     const char* home_dir = getenv("HOME");
     if (home_dir != nullptr) {
 
