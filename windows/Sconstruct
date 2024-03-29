@@ -1,0 +1,60 @@
+
+
+# 29-03-2024
+import os
+import platform
+import subprocess
+
+current_folder = os.getcwd()
+src_folder = os.path.join(current_folder, 'src')
+libs_folder = os.path.join(current_folder, 'libs')
+imgui_folder = os.path.join(libs_folder, 'imgui')
+imgui_backends_folder = os.path.join(libs_folder, 'imgui_backends')
+glfw_include_folder = os.path.join(libs_folder, 'glfw', 'include')
+glfw_lib_folder = os.path.join(libs_folder, 'glfw', 'lib-mingw-w64')
+stb_folder = os.path.join(libs_folder, 'stb')
+build_folder = os.path.join(current_folder, 'build')
+application_folder = os.path.join(current_folder, 'application')  # Define the application folder
+
+# Ensure the build and application directories exist
+os.makedirs(build_folder, exist_ok=True)
+os.makedirs(application_folder, exist_ok=True)  # Create the application folder if it does not exist
+
+# Determine the compiler path
+if platform.system() == 'Windows':
+    result = subprocess.run(['where', 'g++.exe'], stdout=subprocess.PIPE)
+    compiler_path = result.stdout.strip().decode()
+else:
+    result = subprocess.run(['which', 'g++'], stdout=subprocess.PIPE)
+    compiler_path = result.stdout.strip().decode()
+
+print("Compiler is at: ", compiler_path)
+
+env = Environment(tools=['mingw'])
+env.Append(CCFLAGS=['-std=c++17', '-m64'])  # Enable C++17 standard and target 64-bit architecture
+env.Append(LINKFLAGS=['-static', '-static-libgcc', '-static-libstdc++'])  # Static linking flags for MinGW-w64
+
+# Library and include paths
+env.Append(LIBPATH=[glfw_lib_folder])
+env.Append(CPPPATH=[src_folder, imgui_folder, imgui_backends_folder, glfw_include_folder, stb_folder])
+
+# Libraries to link against
+env.Append(LIBS=['glfw3', 'opengl32', 'gdi32', 'user32'])
+
+# Define source files
+cpp_sources = [
+    os.path.join(imgui_folder, 'imgui.cpp'),
+    os.path.join(imgui_folder, 'imgui_demo.cpp'),
+    os.path.join(imgui_folder, 'imgui_draw.cpp'),
+    os.path.join(imgui_folder, 'imgui_tables.cpp'),
+    os.path.join(imgui_folder, 'imgui_widgets.cpp'),
+    os.path.join(imgui_backends_folder, 'imgui_impl_glfw.cpp'),
+    os.path.join(imgui_backends_folder, 'imgui_impl_opengl3.cpp'),
+    os.path.join(src_folder, 'main.cpp'),
+]
+
+# Compile source files into object files, specifying the build folder as the target directory
+object_files = [env.Object(target=os.path.join(build_folder, os.path.basename(src) + '.o'), source=src) for src in cpp_sources]
+
+# Link object files into an executable, placing the executable in the application folder
+executable = env.Program(target=os.path.join(application_folder, "imguiapp"), source=object_files)

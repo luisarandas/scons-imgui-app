@@ -9,3 +9,5 @@ scons-imgui-example
 ./application
 application
 application/
+
+*.obj
