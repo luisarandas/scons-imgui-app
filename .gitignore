@@ -11,3 +11,7 @@ application
 application/
 
 *.obj
+
+libs/glfw/*
+libs/glfw
+libs/glfw/
