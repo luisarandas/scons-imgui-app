@@ -1,13 +1,18 @@
 # scons-imgui-app
 
-Simple cross platform ImGui application compiling with Scons. Tested on 1) Ubuntu 22.04, 2) Windows 11. Includes STD single header libraries and GLFW from pkg-config/local and backends. To be used in Docker/Podman with: https://github.com/luisarandas/docker-scons-imgui-app.
+Simple cross platform ImGui application compiling with CMake and Scons. Tested on 1) Ubuntu 22.04, 2) Windows 11. Includes STD single header libraries and GLFW from pkg-config/local and backends. To be used in Docker/Podman with: https://github.com/luisarandas/docker-scons-imgui-app.
 
 <!-- ![capture](ubuntu/capture20240228.png) -->
 <img src="ubuntu/capture20240228.png" alt="capture" width="70%" />
 
 ##### Commands
 ```
-(For Ubuntu and Windows:)
+(For CMake Ubuntu:)
+$ rm -rf build && mkdir build && cd build
+$ cmake ..
+$ cmake --build .
+$ ./cmake-imgui-app
+(For Scons Ubuntu and Windows:)
 $ scons --clean
 $ scons
 (Exports to:)

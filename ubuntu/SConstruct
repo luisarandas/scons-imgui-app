@@ -5,12 +5,6 @@
 # luis arandas 26-02-2023
 # Compiling executable to "application/" folder
 
-# ----------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------
-
-# Needs following libraries:
-
 # > imgui (local)
 # > imgui_backends (local)
 # > imgui_sequencer (local)
@@ -163,17 +157,6 @@ elif system_name == 'Darwin':
     libs = ['-framework', 'OpenGL', '-framework', 'Cocoa', '-framework', 'IOKit', '-framework', 'CoreVideo', '-L/usr/local/lib', '-L/opt/local/lib', '-L/opt/homebrew/lib', '-lglfw']
     env.Append(LIBS=libs, CXXFLAGS=['-I/usr/local/include', '-I/opt/local/include', '-I/opt/homebrew/include'])
     
-# elif system_name == 'Windows':
-    # # need fix with dll paths, mingw not functional
-    # env['CXXCOM'] = '$CXX -c $CXXFLAGS $CPPFLAGS $_CPPDEFFLAGS $_CPPINCFLAGS -o $TARGET $SOURCES'
-    # env['CXXFLAGS'] = [x for x in env['CXXFLAGS'] if x != '/TP'] # remove /TP flag
-    # mingw_path = os.path.dirname(compiler_path)
-    # print("if needed to attach dlls -> ", mingw_path)
-    # # if using global do pkg-config
-    # # env.Append(LIBS='-lglfw3 -lgdi32 -lopengl32 -limm32')
-    # # env.Append(CXXFLAGS=env.ParseConfig('pkg-config --cflags glfw3')) # needed if glfw not local
-
-
 
 
 # ----------------------------------------------------------------------------------------
@@ -227,17 +210,4 @@ if system_name == 'Linux':
 elif system_name == 'Darwin':
     env.Append(CPPPATH = stb_folder)
     env.Program(target = executable_name, source = object_arr, LIBS = env['LIBS'])
-
-
-
-# elif system_name == 'Windows':
-    #env['CXXCOM'] = '$CXX -c $CXXFLAGS $CPPFLAGS $_CPPDEFFLAGS $_CPPINCFLAGS -o $TARGET $SOURCES'
-    #env['CXXFLAGS'] = [x for x in env['CXXFLAGS'] if x != '/TP'] # remove /TP flag
-    #mingw_path = os.path.dirname(compiler_path)
-    #print("if needed to attach dlls -> ", mingw_path)
-    # if using global use pkg-config
-    # env.Append(LIBS='-lglfw3 -lgdi32 -lopengl32 -limm32')
-    # env.Append(CXXFLAGS=env.ParseConfig('pkg-config --cflags glfw3')) # needed if glfw not local
-#     # os.chdir(build_folder)
-#     env.Program(target=executable, source=objs)
 
