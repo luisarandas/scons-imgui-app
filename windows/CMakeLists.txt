@@ -92,12 +92,13 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 add_dependencies(${PROJECT_NAME} glfw3)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${GLFW3_LIBRARIES} opengl32 gdi32 user32)
 
-# Clean the application directory before building
-add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory ${APPLICATION_FOLDER}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${APPLICATION_FOLDER}
-    COMMENT "Cleaning and creating the application directory"
-)
+
+# # Clean the application directory before building
+# add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E remove_directory ${APPLICATION_FOLDER}
+#     COMMAND ${CMAKE_COMMAND} -E make_directory ${APPLICATION_FOLDER}
+#     COMMENT "Cleaning and creating the application directory"
+# )
 
 # Copy data files after build
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

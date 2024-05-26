@@ -1,8 +1,8 @@
-
-
-/* 
-    imgui library example file fork
-    luis arandas 27-02-2023 
+// ---------------------------------------------
+// ---------------------------------------------
+/*
+    ImGUI library simple app
+    27-02-2023 luisarandas
 */
 
 #include "imgui.h"
@@ -35,9 +35,20 @@
 #include "stb_image.h"
 
 
-static void glfw_error_callback(int error, const char* description) {
+// ---------------------------------------------
+// ---------------------------------------------
+// Function prototypes
+
+void setup_fonts(ImGuiIO& io);
+void setup_logo(GLFWwindow* window);
+
+void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+
+
+// ---------------------------------------------
+// ---------------------------------------------
 
 int main(int, char**) {
     
@@ -72,8 +83,13 @@ int main(int, char**) {
 
     // create 720p window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "scons-imgui-app", NULL, NULL);
-    if (window == NULL)
-        return 1;
+
+    if (!window) {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // enable vsync
 
@@ -94,56 +110,19 @@ int main(int, char**) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // load fonts
-
-    // - if no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - addFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-    // - if the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-    // - the fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-    // - use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use Freetype for higher quality font rendering.
-    // - read 'docs/FONTS.md' for more instructions and details.
-    // - remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    // io.Fonts->AddFontDefault();
-
-    //std::filesystem::path current_dir = std::filesystem::current_path();
-    //std::filesystem::path current_dir = std::filesystem::path("~");
     
-    const char* home_dir = getenv("HOME");
-    if (home_dir != nullptr) {
 
-        std::string font_path = std::string(home_dir) + "/data/DejaVuSans.ttf";
-        std::filesystem::path logo_path = std::filesystem::path(home_dir) / "data" / "logo_viewport.png";
+    setup_fonts(io);
+    setup_logo(window);
 
-        std::cout << "font path: " << font_path << std::endl;
-        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14.0f);
-        std::cout << "logo path: " << logo_path << std::endl;
-        int logo_width, logo_height, channels;
-        unsigned char* logo_pixels = stbi_load(logo_path.string().c_str(), &logo_width, &logo_height, &channels, 4);
-        //unsigned char* logo_pixels = stbi_load(logo_path.c_str(), &logo_width, &logo_height, &channels, 4);
-        GLFWimage images[1];
-        images[0].width = logo_width;
-        images[0].height = logo_height;
-        images[0].pixels = logo_pixels;
-        
-        glfwSetWindowIcon(window, 1, images);
-        
-    } else {
-        std::cout << "failed to retrieve home directory" << std::endl;
-    }    
-
-    // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
-    // IM_ASSERT(font != NULL);
-
-    // our state
+    // Main variables in main()
 
     bool show_demo_window = false;
-    bool show_another_window = true;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool show_another_window = false;
+    ImVec4 clear_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-    
-    
 
-    // main loop
+    // Main loop
 
     while (!glfwWindowShouldClose(window))
     {
@@ -155,38 +134,62 @@ int main(int, char**) {
         glfwPollEvents();
 
         // Start the Dear ImGui frame
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 1. show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
 
-        // 2. show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        // Menu bar
 
-            ImGui::Begin("Hello, world!"); // create a window called "Hello, world!" and append into it.
-            ImGui::Text("This is some useful text."); // display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window); // edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // edit 3 floats representing a color
-
-            if (ImGui::Button("Button")) // buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                ImGui::MenuItem("#1", NULL);
+                ImGui::MenuItem("#2", NULL);
+                ImGui::MenuItem("#3", NULL);
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit")) {
+                ImGui::MenuItem("#1", NULL);
+                ImGui::MenuItem("#2", NULL);
+                ImGui::MenuItem("#3", NULL);
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Exit")) {
+                ImGui::MenuItem("#1", NULL);
+                ImGui::MenuItem("#2", NULL);
+                ImGui::MenuItem("#3", NULL);
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
         }
 
-        // 3. show another simple window.
+        // Create the main window
+
+        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y - ImGui::GetFrameHeight()));
+        ImGui::Begin("Main Window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+        // Customize style for panel windows
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.4f, 0.4f, 0.4f, 0.8f));   // Light grey background
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 1.0f, 0.0f, 1.0f));       // White text
+
+        // Create sub-windows inside the main window
+        ImGui::BeginChild("panel_window1", ImVec2(ImGui::GetContentRegionAvail().x / 3, ImGui::GetContentRegionAvail().y), true);
+        ImGui::Text("Panel 1");
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("panel_window2", ImVec2(ImGui::GetContentRegionAvail().x / 2, ImGui::GetContentRegionAvail().y), true);
+        ImGui::Text("Panel 2");
+        ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginChild("panel_window3", ImVec2(0, ImGui::GetContentRegionAvail().y), true); // Remaining space
+        ImGui::Text("Panel 3");
+        ImGui::EndChild();
+
+        // Restore style
+        ImGui::PopStyleColor(2);
+        ImGui::End();
 
         if (show_another_window)
         {
@@ -197,7 +200,7 @@ int main(int, char**) {
             ImGui::End();
         }
 
-        // rendering
+        // Rendering
 
         ImGui::Render();
         int display_w, display_h;
@@ -210,7 +213,7 @@ int main(int, char**) {
         glfwSwapBuffers(window);
     }
 
-    // cleanup
+    // Cleanup
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -221,3 +224,37 @@ int main(int, char**) {
 
     return 0;
 }
+
+// ---------------------------------------------
+// ---------------------------------------------
+
+
+void setup_fonts(ImGuiIO& io) {
+    std::filesystem::path font_path = std::filesystem::current_path() / "data" / "DejaVuSans.ttf";
+    if (std::filesystem::exists(font_path)) {
+        io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 16.0f); // 14.0f
+    } else {
+        std::cerr << "Font file not found: " << font_path << std::endl;
+    }
+}
+
+void setup_logo(GLFWwindow* window) {
+    std::filesystem::path logo_path = std::filesystem::current_path() / "data" / "logo_viewport.png";
+    if (std::filesystem::exists(logo_path)) {
+        int logo_width, logo_height, channels;
+        unsigned char* logo_pixels = stbi_load(logo_path.string().c_str(), &logo_width, &logo_height, &channels, 4);
+        if (logo_pixels) {
+            GLFWimage images[1];
+            images[0].width = logo_width;
+            images[0].height = logo_height;
+            images[0].pixels = logo_pixels;
+            glfwSetWindowIcon(window, 1, images);
+            stbi_image_free(logo_pixels);
+        } else {
+            std::cerr << "Failed to load logo image: " << logo_path << std::endl;
+        }
+    } else {
+        std::cerr << "Logo file not found: " << logo_path << std::endl;
+    }
+}
+
