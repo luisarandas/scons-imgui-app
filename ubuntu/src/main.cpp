@@ -232,7 +232,7 @@ int main(int, char**) {
 void setup_fonts(ImGuiIO& io) {
     std::filesystem::path font_path = std::filesystem::current_path() / "data" / "DejaVuSans.ttf";
     if (std::filesystem::exists(font_path)) {
-        io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 16.0f); // 14.0f
+        io.Fonts->AddFontFromFileTTF(font_path.string().c_str(), 14.0f);
     } else {
         std::cerr << "Font file not found: " << font_path << std::endl;
     }
