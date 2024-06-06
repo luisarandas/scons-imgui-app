@@ -15,6 +15,8 @@
 #include "imgui_impl_opengl3.h"
 
 #include <iostream>
+#include <vector>
+#include <string>
 #include <filesystem>
 
 #define GL_SILENCE_DEPRECATION
@@ -37,14 +39,152 @@
 
 // ---------------------------------------------
 // ---------------------------------------------
-// Function prototypes
 
 void setup_fonts(ImGuiIO& io);
 void setup_logo(GLFWwindow* window);
 
+
 void glfw_error_callback(int error, const char* description) {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+
+
+GLuint LoadTextureFromFile(const char* filename) {
+    int width, height, channels;
+    unsigned char* data = stbi_load(filename, &width, &height, &channels, 4);
+    if (!data) {
+        std::cerr << "Failed to load image: " << filename << std::endl;
+        return 0;
+    }
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    stbi_image_free(data);
+    return texture;
+}
+
+
+
+// Utility function to check if a string ends with a specific suffix
+bool EndsWith(const std::string& str, const std::string& suffix) {
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+// Function to scan the directory and get a list of image files
+std::vector<std::string> GetImageFiles(const std::string& directory) {
+    std::vector<std::string> image_files;
+    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+        if (entry.is_regular_file()) {
+            std::string path = entry.path().string();
+            if (EndsWith(path, ".png") || EndsWith(path, ".jpg") || EndsWith(path, ".jpeg")) {
+                image_files.push_back(path);
+            }
+        }
+    }
+    return image_files;
+}
+
+
+
+
+void ShowImageSubwindow(const char* title, const char* directory, int width = -1, int height = -1) {
+    static std::vector<std::string> image_files = GetImageFiles(directory);
+    static size_t current_image_index = 0;
+    static GLuint texture = 0;
+    static int img_width = 0, img_height = 0;
+
+    if (texture == 0 && !image_files.empty()) {
+        const std::string& image_path = image_files[current_image_index];
+        int channels;
+        unsigned char* data = stbi_load(image_path.c_str(), &img_width, &img_height, &channels, 4);
+        if (data) {
+            glGenTextures(1, &texture);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            stbi_image_free(data);
+        } else {
+            std::cerr << "Failed to load image: " << image_path << std::endl;
+            return;
+        }
+    }
+
+    // Determine the size of the subwindow
+    ImVec2 size = ImVec2(width, height);
+    if (width == -1 || height == -1) {
+        ImVec2 parent_size = ImGui::GetContentRegionAvail();
+        if (width == -1) size.x = parent_size.x;
+        if (height == -1) size.y = parent_size.y;
+    }
+
+    ImGui::BeginChild(title, size, true, ImGuiWindowFlags_NoScrollbar);
+
+    // Define the fixed height for the image and calculate width to maintain aspect ratio
+    float fixed_height = 150.0f;
+    float fixed_width = fixed_height * (static_cast<float>(img_width) / img_height);
+
+    // Set a black background for the image area
+    ImVec2 p_min = ImGui::GetCursorScreenPos();
+    ImVec2 p_max = ImVec2(p_min.x + fixed_width, p_min.y + fixed_height);
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRectFilled(p_min, p_max, IM_COL32(0, 0, 0, 255));
+
+    // Draw the image with a white border
+    ImGui::Image((void*)(intptr_t)texture, ImVec2(fixed_width, fixed_height));
+    ImVec2 image_p_min = ImGui::GetItemRectMin();
+    ImVec2 image_p_max = ImGui::GetItemRectMax();
+    draw_list->AddRect(image_p_min, image_p_max, IM_COL32(255, 255, 255, 255), 0.0f, 0, 2.0f);
+
+    // Navigation buttons
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10); // Place buttons below the image with a small padding
+    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(255, 192, 203, 255)); // Pink background
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(255, 0, 0, 255)); // Red hover
+    ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 0, 0, 255)); // Black text
+
+    if (ImGui::Button("<-")) {
+        // Handle previous action
+        if (current_image_index > 0) {
+            current_image_index--;
+            glDeleteTextures(1, &texture);
+            texture = 0; // Reset texture to force reloading
+        }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("->")) {
+        // Handle next action
+        if (current_image_index < image_files.size() - 1) {
+            current_image_index++;
+            glDeleteTextures(1, &texture);
+            texture = 0; // Reset texture to force reloading
+        }
+    }
+    ImGui::PopStyleColor(3);
+
+    // Title
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10); // Adjust position for title
+    ImGui::Text("%s", title);
+
+    // Current media path
+    if (!image_files.empty()) {
+        ImGui::Text("Current media: %s", image_files[current_image_index].c_str());
+    }
+
+    ImGui::EndChild();
+}
+
+
+
+
+
 
 
 // ---------------------------------------------
@@ -177,6 +317,9 @@ int main(int, char**) {
         // Create sub-windows inside the main window
         ImGui::BeginChild("panel_window1", ImVec2(ImGui::GetContentRegionAvail().x / 3, ImGui::GetContentRegionAvail().y), true);
         ImGui::Text("Panel 1");
+
+        ShowImageSubwindow("(Image Folder Navigator)", "data/", -1, 250); // Dynamic sizing
+
         ImGui::EndChild();
         ImGui::SameLine();
         ImGui::BeginChild("panel_window2", ImVec2(ImGui::GetContentRegionAvail().x / 2, ImGui::GetContentRegionAvail().y), true);
@@ -224,6 +367,8 @@ int main(int, char**) {
 
     return 0;
 }
+
+
 
 // ---------------------------------------------
 // ---------------------------------------------
